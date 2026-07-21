@@ -1,0 +1,13 @@
+{
+  "name": "github-stats-cards",
+  "version": "1.0.0",
+  "description": "Generate your own GitHub stats card in SVG, rate-limit free (self-hosted via GitHub Actions).",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "node src/index.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

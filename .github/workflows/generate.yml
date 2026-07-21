@@ -1,0 +1,47 @@
+name: Generate stats card
+
+on:
+  schedule:
+    # Every 6 hours (UTC). Tweak if you want it more/less often.
+    - cron: "0 */6 * * *"
+  workflow_dispatch: # manual "Run workflow" button
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - ".github/workflows/generate.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Generate the SVG
+        env:
+          # Create a PAT (Settings > Developer settings > Personal access tokens)
+          # with the "read:user" scope and store it in the repo secrets as GH_TOKEN.
+          # Without a PAT, the default GITHUB_TOKEN works for public data.
+          GH_TOKEN: ${{ secrets.GH_TOKEN || github.token }}
+          GH_USERNAME: ${{ vars.GH_USERNAME || github.repository_owner }}
+          GH_THEME: ${{ vars.GH_THEME || 'radical' }}
+        run: node src/index.mjs
+
+      - name: Commit if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add generated/
+          if git diff --staged --quiet; then
+            echo "No change in the stats."
+          else
+            git commit -m "chore: update stats card [skip ci]"
+            git push
+          fi
